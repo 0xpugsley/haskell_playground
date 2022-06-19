@@ -1,0 +1,58 @@
+cabal-version:      2.4
+name:               haskell-course
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             Pugsley
+maintainer:         0xpugsley@protonmail.com
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+library
+  exposed-modules:                                                                                                                                                                                                                                                                                                                                    
+      Lib
+  other-modules:
+      Paths_haskell_course
+  hs-source-dirs:
+      src
+  build-depends:
+      base ^>=4.14.3.0 
+  default-language: Haskell2010
+
+executable haskell-course
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    other-modules: Paths_haskell_course
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.14.3.0, haskell-course
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+test-suite haskel-course-test                                                                                                                                                                                                                                                                                                                                   
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_haskell_course
+  hs-source-dirs:
+      test
+--   ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base ^>=4.14.3.0
+    , haskell-course
+  default-language: Haskell2010
