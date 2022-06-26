@@ -22,7 +22,7 @@ maintainer:         0xpugsley@protonmail.com
 extra-source-files: CHANGELOG.md
 
 library
-  exposed-modules:  Lib, Fp7
+  exposed-modules:  Lib, Fp7, Fp8
   other-modules:    Paths_haskell_course
   hs-source-dirs:   src
   build-depends:    base ^>=4.14.3.0
