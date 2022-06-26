@@ -17,4 +17,4 @@ perfects :: Int -> [Int]
 perfects n = [x | x <- [1 .. n], sum (init (factors x)) == x]
 
 scalarProduct :: [Int] -> [Int] -> Int
-scalarProduct xs ys = sum [y * y | (x, y) <- zip xs ys]
+scalarProduct xs ys = sum [x * y | (x, y) <- zip xs ys]
