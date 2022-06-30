@@ -22,7 +22,12 @@ maintainer:         0xpugsley@protonmail.com
 extra-source-files: CHANGELOG.md
 
 library
-  exposed-modules:  Lib, Fp7, Fp8
+  exposed-modules:
+    Fp12
+    Fp7
+    Fp8
+    Lib
+
   other-modules:    Paths_haskell_course
   hs-source-dirs:   src
   build-depends:    base ^>=4.14.3.0
@@ -45,9 +50,15 @@ executable haskell-course
 
 test-suite haskel-course-test
   type:             exitcode-stdio-1.0
-  main-is:          Spec.hs
+  main-is:          SpecFp12.hs
   other-modules:    Paths_haskell_course
   hs-source-dirs:   test
+  build-depends:
+    , containers            ^>=0.5
+    , HUnit
+    , test-framework
+    , test-framework-hunit
+    , haskell-course
 
   --   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
