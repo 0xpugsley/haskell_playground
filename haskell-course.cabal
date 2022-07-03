@@ -48,6 +48,18 @@ executable haskell-course
   hs-source-dirs:   app
   default-language: Haskell2010
 
+executable nim
+  main-is:          Main.hs
+
+  -- Modules included in this executable, other than Main.
+  other-modules:    Paths_haskell_course
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:    base ^>=4.14.3.0
+  hs-source-dirs:   nim
+  default-language: Haskell2010
+
 test-suite haskel-course-test
   type:             exitcode-stdio-1.0
   main-is:          SpecFp12.hs
@@ -55,10 +67,10 @@ test-suite haskel-course-test
   hs-source-dirs:   test
   build-depends:
     , containers            ^>=0.5
+    , haskell-course
     , HUnit
     , test-framework
     , test-framework-hunit
-    , haskell-course
 
   --   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
