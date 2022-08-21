@@ -40,17 +40,17 @@ data Player = O | B | X deriving (Eq, Ord)
 
 instance Show Player where
   show O = "O"
-  show B = "B"
+  show B = "."
   show X = "X"
 
 -- instance Show Board where
 -- show b = []
 
 stringifyRow :: Row -> String
-stringifyRow r = unwords [show a | a <- r]
+stringifyRow = foldr (\a b -> show(a) ++ b) ""
 
 stringifyBoard :: Board -> String
-stringifyBoard b = unlines ([stringifyRow r | r <- b]) ++ unwords (map show [0 .. cols -1])
+stringifyBoard b = unlines ([stringifyRow r | r <- b]) ++ replicate cols '-' ++ "\n" ++ filter (/= ' ') (unwords (map show [0 .. cols -1]))
 
 dummyRow :: Row
 dummyRow = [B, O, B, X]
@@ -62,6 +62,9 @@ createEmptyBoard = replicate rows createRow
 
 createTestBoard :: Board
 createTestBoard = [[B, B, X], [B, X, O], [O, O, X]]
+
+createTestBoard1 :: Board
+createTestBoard1 = [[B, B, B], [B, X, O], [O, O, X]]
 
 data Tree a = Node a [Tree a] deriving (Show)
 
@@ -163,16 +166,42 @@ untree = map (\(Node (_, _, l) _) -> l)
 testNode :: Tree ([[Player]], Player)
 testNode = Node ([[B, B, X], [B, X, O], [O, O, X]], B) [Node ([[B, B, X], [B, X, O], [O, O, X]], X) [Node ([[B, B, X], [B, X, O], [O, O, X]], X) []]]
 
+testBoard2 = [[B, X, X], [B, X, O], [O, O, X]]
+
+testBoard3 = [[B, X, X], [X, X, O], [O, O, X]]
+
 workUpTheTree :: Tree (Board, Player, Player) -> Tree (Board, Player, Player)
 workUpTheTree (Node (b, t, l) []) = Node (b, t, l) []
-workUpTheTree (Node (b, t, l) xs) = Node (b, t, compute (map workUpTheTree xs)) xs
+workUpTheTree (Node (b, t, l) xs) = Node (b, t, compute xs') xs'
   where
+    xs' = map workUpTheTree xs
     compute = (if t == O then minimum else maximum) . untree
+
+getBestBoard :: Tree (Board, Player, Player) -> Board
+getBestBoard (Node (b, _, l) xs) = fst (head (filter (\a -> snd a == l) xs'))
+  where
+    xs' = [(b', l') | (Node (b', _, l') _) <- xs]
+
+makeMove :: Int -> Player -> Board -> Board
+makeMove position player board = columns (map (\(r, i) -> if i == position then (modify r) else r) (zip (columns board) [0 ..]))
+  where
+    modify r = drop 1 (takeWhile (== B) r) ++ [player] ++ dropWhile (== B) r
+
+game :: Player -> Board -> IO ()
+game player board = do
+  putStrLn (stringifyBoard board)
+  input <- getLine
+  let x = (read input :: Int)
+  let newBoard = makeMove x player board
+  putStrLn (stringifyBoard newBoard)
+  putStr "\n"
+  let nextMove = getBestBoard (workUpTheTree (labelTree (createGameTree (next player) newBoard)))
+  -- putStrLn (stringifyBoard nextMove)
+  game player nextMove
 
 main :: IO ()
 main = do
   putStrLn "hey"
-  -- putStrLn (stringifyBoard createEmptyBoard)
-  putStrLn (stringifyBoard createTestBoard)
+  game X createEmptyBoard
 
 -- print (createGameTree createTestBoard O)
