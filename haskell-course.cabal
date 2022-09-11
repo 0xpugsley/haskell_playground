@@ -21,6 +21,9 @@ maintainer:         0xpugsley@protonmail.com
 -- category:
 extra-source-files: CHANGELOG.md
 
+common warnings
+    ghc-options: -Wall
+
 library
   exposed-modules:
     Fp12
@@ -70,6 +73,20 @@ executable sudoku
   -- other-extensions:
   build-depends:    base ^>=4.14.3.0
   hs-source-dirs:   sudoku
+  default-language: Haskell2010
+
+executable compiler
+  import:           warnings
+  main-is:          Main.hs
+
+  -- Modules included in this executable, other than Main.
+  other-modules:    Paths_haskell_course
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:    base ^>=4.14.3.0
+                    , mtl
+  hs-source-dirs:   compiler
   default-language: Haskell2010
 
 executable 4game
