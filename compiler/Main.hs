@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 
@@ -63,8 +64,8 @@ program3 :: Prog
 program3 =
   Assign 'A' (Val 1)
 
-instructions :: [Inst]
-instructions =
+code :: [Inst]
+code =
   [ PUSH 1,
     POP 'A',
     PUSH 10,
@@ -98,6 +99,11 @@ compileExpr (App op expr1 expr2) =
 
 compile :: Prog -> WriterT Code (State Int) ()
 compile (Seqn []) = tell []
+-- compile (If expr prog1 prog2) =
+--   do
+--     compileExpr expr
+--     compile prog1
+--     compile prog2
 compile (Seqn (prog : progs)) =
   do
     compile prog
@@ -124,24 +130,24 @@ comp prog = snd (evalState (runWriterT (compile prog)) 0)
 
 -- vm
 modifyMem :: Name -> Int -> Mem -> Mem
-modifyMem n v m = (n, v) : filter (\(k,_) -> k /= n) m
+modifyMem n v m = (n, v) : filter (\(k, _) -> k /= n) m
 
 getFromMem :: Name -> Mem -> Int
-getFromMem name mem = snd (head $ filter (\(k,_) -> k == name) mem)
+getFromMem name mem = snd (head $ filter (\(k, _) -> k == name) mem)
 
-pop2mem :: Name -> State (Stack, Mem, Code) ()
-pop2mem name = state $ \(x : xs, mem, code) -> ((), (xs, modifyMem name x mem, code))
+pop2mem :: Name -> ReaderT Code (State (Stack, Mem)) ()
+pop2mem name = state $ \(x : xs, mem) -> ((), (xs, modifyMem name x mem))
 
-pop :: State (Stack, Mem, Code) Int
-pop = state $ \(x : xs, mem, code) -> (x, (xs, mem, code))
+pop :: ReaderT Code (State (Stack, Mem)) Int
+pop = state $ \(x : xs, mem) -> (x, (xs, mem))
 
-pushV :: Name -> State (Stack, Mem, Code) ()
-pushV name = state $ \(xs, mem, code) -> ((), (getFromMem name mem : xs, mem, code))
+pushV :: Name -> ReaderT Code (State (Stack, Mem)) ()
+pushV name = state $ \(xs, mem) -> ((), (getFromMem name mem : xs, mem))
 
-push :: Int -> State (Stack, Mem, Code) ()
-push v = state $ \(xs, mem, code) -> ((), (v : xs, mem, code))
+push :: Int -> ReaderT Code (State (Stack, Mem)) ()
+push v = state $ \(xs, mem) -> ((), (v : xs, mem))
 
-exec' :: Code -> State (Stack, Mem, Code) ()
+exec' :: Code -> ReaderT Code (State (Stack, Mem)) ()
 exec' [] = do
   return ()
 exec' ((PUSH x) : xs) = do
@@ -163,20 +169,20 @@ exec' ((DO op) : xs) = do
     Div -> push (x `div` y)
   exec' xs
 exec' ((JUMP label) : _) = do
-  (_, _, code) <- get
-  exec' (dropWhile (/= LABEL label) code)
+  c <- ask
+  exec' (dropWhile (/= LABEL label) c)
 exec' ((JUMPZ label) : xs) = do
   x <- pop
   if x == 0
     then do
-      (_, _, code) <- get
-      exec' (dropWhile (/= LABEL label) code)
+      c <- ask
+      exec' (dropWhile (/= LABEL label) c)
     else exec' xs
 exec' ((LABEL _) : xs) = do
   exec' xs
 
-exec :: Code -> ()
-exec code = evalState (exec' code) ([],[],code)
+exec :: Code -> (Stack, Mem)
+exec c = execState (runReaderT (exec' c) c) ([], [])
 
 test_mem :: [(Char, Integer)]
 test_mem = [('A', 3628800), ('B', 0)]
