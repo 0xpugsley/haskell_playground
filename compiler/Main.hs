@@ -1,3 +1,4 @@
+{-# LANGUAGE StrictData #-}
 module Main where
 
 import Control.Monad.Reader
@@ -53,6 +54,28 @@ program =
         )
     ]
 
+programIfBranchA :: Prog
+programIfBranchA =
+  Seqn
+    [ Assign 'A' (Val 1),
+      Assign 'B' (Val 10),
+      If
+        (Var 'A')
+        (Assign 'B' (App Sub (Var 'B') (Val 1)))
+        (Assign 'B' (App Add (Var 'B') (Val 1)))
+    ]
+
+programIfBranchB :: Prog
+programIfBranchB =
+  Seqn
+    [ Assign 'A' (Val 0),
+      Assign 'B' (Val 10),
+      If
+        (Var 'A')
+        (Assign 'B' (App Sub (Var 'B') (Val 1)))
+        (Assign 'B' (App Add (Var 'B') (Val 1)))
+    ]
+
 program2 :: Prog
 program2 =
   Seqn
@@ -99,11 +122,19 @@ compileExpr (App op expr1 expr2) =
 
 compile :: Prog -> WriterT Code (State Int) ()
 compile (Seqn []) = tell []
--- compile (If expr prog1 prog2) =
---   do
---     compileExpr expr
---     compile prog1
---     compile prog2
+compile (If expr prog1 prog2) =
+  do
+    branchB <- get
+    put (branchB + 1)
+    endLabel <- get
+    put (endLabel + 1)
+    compileExpr expr
+    tell [JUMPZ branchB]
+    compile prog1
+    tell [JUMP endLabel]
+    tell [LABEL branchB]
+    compile prog2
+    tell [LABEL endLabel]
 compile (Seqn (prog : progs)) =
   do
     compile prog
